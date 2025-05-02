@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+
+    --card: 224 71% 6%;
+    --card-foreground: 213 31% 91%;
+
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
+
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+
+    --accent: 217.2 91.2% 59.8%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 224 71% 6%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217.2 91.2% 59.8%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-darker-blue text-text-white font-inter;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
+  }
+  
+  h1 {
+    @apply text-3xl font-bold md:text-4xl;
+  }
+  
+  h2 {
+    @apply text-2xl font-bold md:text-3xl;
+  }
+  
+  h3 {
+    @apply text-xl font-bold md:text-2xl;
+  }
+  
+  h4 {
+    @apply text-lg font-bold;
+  }
+}
+
+@layer utilities {
+  .card-gradient {
+    @apply bg-gradient-to-br from-card to-secondary/80 backdrop-blur-sm;
+  }
+  
+  .stats-card {
+    @apply bg-secondary-gray rounded-lg p-6 flex flex-col;
+  }
+  
+  .sidebar-link {
+    @apply flex items-center gap-2 py-3 px-4 text-text-light hover:bg-secondary-gray rounded-md transition-all;
+  }
+  
+  .sidebar-link.active {
+    @apply bg-secondary-gray text-primary-blue;
+  }
+}

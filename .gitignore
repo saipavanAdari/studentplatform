@@ -1,0 +1,25 @@
+# OS generated files
+Thumbs.db
+.DS_Store
+
+# Dependency directories
+**/node_modules/
+**/dist/
+**/build/
+
+# Logs
+*.log
+
+# Env files
+*.env
+
+# IDE settings
+.vscode/
+
+# Cache files
+*.tmp
+
+# Windows user directories
+AppData/
+
+.vscode/
