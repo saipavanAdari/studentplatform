@@ -80,7 +80,9 @@ pnpm-lock.yaml
 .npm/
 
 # AppData (Windows user local settings — avoid accidental tracking)
+.vscode/
 AppData/
+
 
 # Temporary files
 *.tmp
