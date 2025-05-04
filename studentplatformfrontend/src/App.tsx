@@ -12,6 +12,7 @@ import DesignSystem from "./pages/DesignSystem";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Uploadedcontent from "./pages/Uploadedcontent";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/admindashboard" element={<AdminDashboard />} />
           <Route path="/design" element={<DesignSystem />} />
           <Route path="/teacherdashboard/content" element={<Uploadedcontent />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

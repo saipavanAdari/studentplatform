@@ -52,11 +52,13 @@ const TeacherDashboard: React.FC = () => {
   const fetchUploads = async () => {
     try {
       const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
       const res = await axios.get('http://localhost:9001/api/uploads', {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      const uploads = res.data.map((item: any) => {
+      
+      const filteredData = res.data.filter((item: any) => item.uploadedBy._id === userId);
+      const uploads = filteredData.map((item: any) => {
         const enrichedItem = {
           title: item.title,
           type: item.type,
@@ -70,13 +72,13 @@ const TeacherDashboard: React.FC = () => {
           id: item._id,
           originalData: item,
         };
-      
+
         return {
           ...enrichedItem,
           actions: renderActions(enrichedItem), // pass enrichedItem here
         };
       });
-      
+
       console.log("url", uploads)
 
       setContent(uploads);

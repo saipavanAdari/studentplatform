@@ -182,7 +182,7 @@ const Register: React.FC = () => {
       </div>
 
       <div className="py-6 text-center text-text-muted text-sm">
-        <p>© 2025 EduPlatform. All rights reserved.</p>
+        <p>© 2025 EduPlatform. All rights reserved by Sai Adari.</p>
       </div>
     </div>
   );
