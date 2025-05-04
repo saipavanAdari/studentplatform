@@ -12,8 +12,17 @@ import { toast } from 'sonner';
 import axios from 'axios';
 
 const TeacherDashboard: React.FC = () => {
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<'upload' | 'edit'>('upload');
+  const [dialogData, setDialogData] = useState<any | null>(null);
+
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [content, setContent] = useState<any[]>([]);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editData, setEditData] = useState<any | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,9 +44,13 @@ const TeacherDashboard: React.FC = () => {
           day: 'numeric',
           year: 'numeric',
         }),
-        views: 0, // Replace with actual views when available
-        actions: renderActions(),
+        views: 0,
+        actions: renderActions({ ...item }), // Already has _id
+        id: item._id, // Add this
+        originalData: item, // Preserve full data if needed
       }));
+
+
 
       setContent(uploads);
     } catch (err) {
@@ -45,19 +58,59 @@ const TeacherDashboard: React.FC = () => {
       toast.error('Failed to load uploads');
     }
   };
+  const handleEditClick = (item: any) => {
+    setDialogMode('edit');
+    setDialogData({ id: item._id, title: item.title, type: item.type });
+    setDialogOpen(true);
+  };
+
+  const handleUpdateUpload = async (id: string, file: File | null, title: string, type: string) => {
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('type', type);
+    if (file) formData.append('file', file);
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`http://localhost:9001/api/uploads/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      toast.success('Upload updated');
+      fetchUploads();
+      setDialogOpen(false);
+    } catch (err) {
+      console.error(err);
+      toast.error('Update failed');
+    }
+  };
+
+
+
 
   const handleLogout = () => {
     localStorage.clear();
     navigate('/');
   };
 
-  const renderActions = () => (
+  const renderActions = (item: any) => (
     <div className="flex space-x-2 justify-end">
       <button className="text-text-muted hover:text-primary-blue">
-        <Users className="h-5 w-5" />
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
       </button>
-      <button className="text-text-muted hover:text-primary-blue">
-        <FileText className="h-5 w-5" />
+      <button
+        className="text-text-muted hover:text-primary-blue"
+        onClick={() => handleEditClick(item)}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
       </button>
       <button className="text-danger-red">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -124,9 +177,17 @@ const TeacherDashboard: React.FC = () => {
           <div className="bg-dark-blue rounded-lg overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-secondary-gray/20">
               <h2 className="text-xl font-medium">Recent Uploads</h2>
-              <Button className="bg-primary-blue hover:bg-primary-blue/90" onClick={() => setUploadDialogOpen(true)}>
+              <Button
+                className="bg-primary-blue hover:bg-primary-blue/90"
+                onClick={() => {
+                  setDialogMode('upload');
+                  setDialogData(null);
+                  setDialogOpen(true);
+                }}
+              >
                 + New Upload
               </Button>
+
             </div>
             <DataTable
               columns={[
@@ -141,7 +202,27 @@ const TeacherDashboard: React.FC = () => {
           </div>
         </main>
       </div>
-      <FileUploadDialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen} onUpload={handleUpload} />
+      <FileUploadDialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setFile(null);
+            setDialogData(null);
+          }
+          setDialogOpen(open);
+        }}
+        mode={dialogMode}
+        initialData={dialogData}
+        onSave={(selectedFile, title, type) => {
+          if (dialogMode === 'upload') {
+            handleUpload(selectedFile!, title, type);
+          } else {
+            handleUpdateUpload(dialogData.id, selectedFile, title, type);
+          }
+        }}
+      />
+
+
     </div>
   );
 };

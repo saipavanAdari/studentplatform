@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Cloud, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,19 +7,46 @@ import { Input } from '@/components/ui/input';
 interface FileUploadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpload: (file: File, title: string, type: string) => void;
+  onSave: (file: File | null, title: string, type: string) => void;
+  initialData?: {
+    title: string;
+    type: string;
+    id?: string;
+  };
+  mode: 'upload' | 'edit';
 }
 
-const FileUploadDialog: React.FC<FileUploadDialogProps> = ({ 
-  open, 
+
+const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
+  open,
   onOpenChange,
-  onUpload
+  onSave,
+  initialData,
+  mode
 }) => {
   const [title, setTitle] = useState('');
   const [fileType, setFileType] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title);
+      setFileType(initialData.type);
+    } else {
+      setTitle('');
+      setFileType('');
+    }
+    setFile(null);
+  }, [initialData, open]);
+
+  const handleSubmit = () => {
+    if (title && fileType && (mode === 'edit' || file)) {
+      onSave(file, title, fileType);
+    }
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -33,7 +60,7 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       setFile(e.dataTransfer.files[0]);
     }
@@ -45,12 +72,7 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
     }
   };
 
-  const handleUpload = () => {
-    if (file && title && fileType) {
-      onUpload(file, title, fileType);
-      resetForm();
-    }
-  };
+
 
   const resetForm = () => {
     setFile(null);
@@ -72,11 +94,10 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
             <span className="sr-only">Close</span>
           </DialogClose>
         </DialogHeader>
-        
+
         <div
-          className={`border-2 border-dashed rounded-md ${
-            isDragging ? 'border-primary-blue bg-primary-blue/5' : 'border-secondary-gray/30'
-          } p-8 text-center`}
+          className={`border-2 border-dashed rounded-md ${isDragging ? 'border-primary-blue bg-primary-blue/5' : 'border-secondary-gray/30'
+            } p-8 text-center`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
@@ -93,8 +114,8 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
               {file ? file.name : 'Drag and drop files here'}
             </p>
             <p className="text-xs text-text-muted mb-4">or</p>
-            <Button 
-              onClick={handleBrowseClick} 
+            <Button
+              onClick={handleBrowseClick}
               variant="secondary"
               className="bg-primary-blue hover:bg-primary-blue/90 text-text-white"
             >
@@ -102,7 +123,7 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
             </Button>
           </div>
         </div>
-        
+
         <div className="space-y-4 py-2">
           <div className="space-y-2">
             <label htmlFor="title" className="text-sm font-medium text-text-light">Title</label>
@@ -114,7 +135,7 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
               className="bg-secondary-gray border-secondary-gray/30 text-text-light"
             />
           </div>
-          
+
           <div className="space-y-2">
             <label htmlFor="type" className="text-sm font-medium text-text-light">Type</label>
             <select
@@ -135,21 +156,20 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
             </select>
           </div>
         </div>
-        
+
         <div className="flex justify-end gap-3">
           <DialogClose asChild>
             <Button variant="outline" className="text-text-light border-secondary-gray/30">
               Cancel
             </Button>
           </DialogClose>
-          <Button 
-            type="submit" 
-            onClick={handleUpload}
-            disabled={!file || !title || !fileType}
-            className="bg-primary-blue hover:bg-primary-blue/90 text-text-white"
+          <Button
+            onClick={handleSubmit}
+            disabled={mode === 'upload' ? !file || !title || !fileType : !title || !fileType}
           >
-            Upload
+            {mode === 'edit' ? 'Save Changes' : 'Upload'}
           </Button>
+
         </div>
       </DialogContent>
     </Dialog>
