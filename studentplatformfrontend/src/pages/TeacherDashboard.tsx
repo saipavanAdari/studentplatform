@@ -56,9 +56,13 @@ const TeacherDashboard: React.FC = () => {
       const res = await axios.get('http://localhost:9001/api/uploads', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       const filteredData = res.data.filter((item: any) => item.uploadedBy._id === userId);
-      const uploads = filteredData.map((item: any) => {
+
+      const recentTransactions = [...filteredData]
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 5);
+      const uploads = recentTransactions.map((item: any) => {
         const enrichedItem = {
           title: item.title,
           type: item.type,
