@@ -8,8 +8,25 @@ import UserProfile from '@/components/UserProfile';
 import DataTable from '@/components/DataTable';
 import { useNavigate } from 'react-router-dom';
 import FileUploadDialog from '@/components/FileUploadDialog';
+import FileViewDialog from '@/components/FileViewDialog';
+import { useFileUpload } from '@/hooks/use-file-upload';
 import { toast } from 'sonner';
 import axios from 'axios';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
+interface ContentItem {
+  title: string;
+  type: string;
+  uploadDate: string;
+  views: number;
+  url?: string; // Added URL property
+  actions: React.ReactNode;
+}
 
 const TeacherDashboard: React.FC = () => {
 
@@ -22,6 +39,9 @@ const TeacherDashboard: React.FC = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editData, setEditData] = useState<any | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<ContentItem | null>(null);
+  const { uploadFile, isUploading } = useFileUpload();
 
   const navigate = useNavigate();
 
@@ -36,21 +56,28 @@ const TeacherDashboard: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const uploads = res.data.map((item: any) => ({
-        title: item.title,
-        type: item.type,
-        uploadDate: new Date(item.createdAt).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-        }),
-        views: 0,
-        actions: renderActions({ ...item }), // Already has _id
-        id: item._id, // Add this
-        originalData: item, // Preserve full data if needed
-      }));
-
-
+      const uploads = res.data.map((item: any) => {
+        const enrichedItem = {
+          title: item.title,
+          type: item.type,
+          uploadDate: new Date(item.createdAt).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          }),
+          views: 0,
+          url: `http://localhost:9001/${item.filePath}`,
+          id: item._id,
+          originalData: item,
+        };
+      
+        return {
+          ...enrichedItem,
+          actions: renderActions(enrichedItem), // pass enrichedItem here
+        };
+      });
+      
+      console.log("url", uploads)
 
       setContent(uploads);
     } catch (err) {
@@ -58,9 +85,11 @@ const TeacherDashboard: React.FC = () => {
       toast.error('Failed to load uploads');
     }
   };
+
+  console.log("content", content)
   const handleEditClick = (item: any) => {
     setDialogMode('edit');
-    setDialogData({ id: item._id, title: item.title, type: item.type });
+    setDialogData({ id: item.id, title: item.title, type: item.type });
     setDialogOpen(true);
   };
 
@@ -98,7 +127,10 @@ const TeacherDashboard: React.FC = () => {
 
   const renderActions = (item: any) => (
     <div className="flex space-x-2 justify-end">
-      <button className="text-text-muted hover:text-primary-blue">
+      <button
+        className="text-text-muted hover:text-primary-blue"
+        onClick={() => handleViewFile(item)}
+      >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -119,7 +151,10 @@ const TeacherDashboard: React.FC = () => {
       </button>
     </div>
   );
-
+  const handleViewFile = (file: ContentItem) => {
+    setSelectedFile(file);
+    setViewDialogOpen(true);
+  };
   const handleUpload = async (file: File, title: string, type: string) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -222,6 +257,11 @@ const TeacherDashboard: React.FC = () => {
         }}
       />
 
+      <FileViewDialog
+        open={viewDialogOpen}
+        onOpenChange={setViewDialogOpen}
+        file={selectedFile}
+      />
 
     </div>
   );
